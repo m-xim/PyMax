@@ -28,7 +28,7 @@ EVENT_MAP: dict[Opcode, Resolver] = {
 
 class EventResolver:
     def resolve(self, frame: InboundFrame) -> EventType | None:
-        if frame.cmd != Command.EVENT:
+        if frame.cmd != Command.REQUEST:
             return None
 
         try:
@@ -48,7 +48,7 @@ class EventMapper:
         self.app = app
 
     def map(self, event_type: EventType, frame: InboundFrame):
-        if frame.cmd != Command.EVENT:
+        if frame.cmd != Command.REQUEST:
             return None
 
         if frame.payload:
