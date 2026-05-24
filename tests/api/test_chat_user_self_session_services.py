@@ -28,6 +28,7 @@ def test_base_mixin_exposes_chat_join_request_and_bot_methods() -> None:
         "decline_join_requests",
         "decline_join_request",
         "get_bot_init_data",
+        "change_password",
     ):
         assert hasattr(BaseMixin, method_name)
 

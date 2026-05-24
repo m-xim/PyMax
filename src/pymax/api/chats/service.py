@@ -278,14 +278,10 @@ class ChatService:
         ]
         return chats
 
-    async def get_join_requests(
-        self, chat_id: int, count: int = 100
-    ) -> list[Member]:
+    async def get_join_requests(self, chat_id: int, count: int = 100) -> list[Member]:
         frame = FetchJoinRequests(chat_id=chat_id, count=count)
 
-        response = await self.app.invoke(
-            Opcode.CHAT_MEMBERS, frame.to_payload()
-        )
+        response = await self.app.invoke(Opcode.CHAT_MEMBERS, frame.to_payload())
 
         return parse_payload_list(response, ChatPayloadKey.MEMBERS, Member)
 
@@ -302,9 +298,7 @@ class ChatService:
             operation=ChatMemberOperation.ADD,
         )
 
-        response = await self.app.invoke(
-            Opcode.CHAT_MEMBERS_UPDATE, frame.to_payload()
-        )
+        response = await self.app.invoke(Opcode.CHAT_MEMBERS_UPDATE, frame.to_payload())
 
         chat = parse_payload_item_model(response, ChatPayloadKey.CHAT, Chat)
         if chat:
@@ -336,9 +330,7 @@ class ChatService:
             operation=ChatMemberOperation.REMOVE,
         )
 
-        response = await self.app.invoke(
-            Opcode.CHAT_MEMBERS_UPDATE, frame.to_payload()
-        )
+        response = await self.app.invoke(Opcode.CHAT_MEMBERS_UPDATE, frame.to_payload())
 
         chat = parse_payload_item_model(response, ChatPayloadKey.CHAT, Chat)
         if chat:

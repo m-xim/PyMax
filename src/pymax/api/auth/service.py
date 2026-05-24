@@ -327,3 +327,27 @@ class AuthService:
             return False
 
         return ProfileOptions.SECOND_FACTOR_PASSWORD_ENABLED in self.app.me.profile_options
+
+    async def change_password(self, password_old: str, password_new: str) -> bool:
+        track_id = await self._get_track_id()
+
+        if not track_id:
+            logger.error("missing track_id in auth create track response")
+            raise RuntimeError("Failed to create auth track")
+
+        await self._check_2fa_password(track_id, password_old)
+
+        await self._set_password(track_id, password_new)
+
+        expected_capabilities = [TwoFactorAction.UPDATE_PASSWORD]
+
+        frame = SetTwoFactorPayload(
+            track_id=track_id,
+            password=password_new,
+            hint=None,
+            expected_capabilities=expected_capabilities,
+        )
+
+        await self.app.invoke(Opcode.AUTH_SET_2FA, frame.to_payload())
+        logger.info("2fa password set successfully")
+        return True

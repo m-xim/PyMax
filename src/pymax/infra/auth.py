@@ -54,6 +54,28 @@ class AuthMixin(IClientProtocol):
         """
         return await self._app.api.auth.remove_2fa(password=password)
 
+    async def change_password(
+        self,
+        password_old: str,
+        password_new: str,
+    ) -> bool:
+        """Меняет пароль 2FA для текущей учетной записи.
+
+        Args:
+            password_old: Текущий пароль 2FA.
+            password_new: Новый пароль 2FA.
+
+        Returns:
+            ``True``, если пароль успешно изменен.
+
+        Raises:
+            RuntimeError: Если изменение пароля не удалось.
+        """
+        return await self._app.api.auth.change_password(
+            password_old=password_old,
+            password_new=password_new,
+        )
+
     async def authorize_qr_login(self, qr_link: str) -> bool:
         """Авторизует вход по QR-коду.
 
