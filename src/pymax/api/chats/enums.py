@@ -21,6 +21,7 @@ class ChatOption(str, Enum):
 class ChatPayloadKey(str, Enum):
     CHAT = "chat"
     CHATS = "chats"
+    MEMBERS = "members"
 
 
 class ChatLinkPrefix(str, Enum):

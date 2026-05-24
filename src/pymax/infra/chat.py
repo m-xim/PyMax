@@ -1,4 +1,4 @@
-from pymax.types import Chat, Message
+from pymax.types import Chat, Member, Message
 
 from .protocol import IClientProtocol
 
@@ -238,3 +238,104 @@ class ChatMixin(IClientProtocol):
             Загруженные чаты.
         """
         return await self._app.api.chats.fetch_chats(marker=marker)
+
+    async def get_join_requests(
+        self,
+        chat_id: int,
+        count: int = 100,
+    ) -> list[Member]:
+        """Возвращает заявки на вступление в группу или канал.
+
+        Args:
+            chat_id: ID группы или канала.
+            count: Максимальное количество заявок в ответе.
+
+        Returns:
+            Список пользователей, ожидающих подтверждения заявки.
+        """
+        return await self._app.api.chats.get_join_requests(
+            chat_id=chat_id,
+            count=count,
+        )
+
+    async def confirm_join_requests(
+        self,
+        chat_id: int,
+        user_ids: list[int],
+        show_history: bool = True,
+    ) -> Chat | None:
+        """Подтверждает несколько заявок на вступление.
+
+        Args:
+            chat_id: ID группы или канала.
+            user_ids: ID пользователей, чьи заявки нужно подтвердить.
+            show_history: Показать новым участникам историю сообщений.
+
+        Returns:
+            Обновленный чат или ``None``, если сервер не вернул чат.
+        """
+        return await self._app.api.chats.confirm_join_requests(
+            chat_id=chat_id,
+            user_ids=user_ids,
+            show_history=show_history,
+        )
+
+    async def confirm_join_request(
+        self,
+        chat_id: int,
+        user_id: int,
+        show_history: bool = True,
+    ) -> Chat | None:
+        """Подтверждает одну заявку на вступление.
+
+        Args:
+            chat_id: ID группы или канала.
+            user_id: ID пользователя, чью заявку нужно подтвердить.
+            show_history: Показать новому участнику историю сообщений.
+
+        Returns:
+            Обновленный чат или ``None``, если сервер не вернул чат.
+        """
+        return await self._app.api.chats.confirm_join_request(
+            chat_id=chat_id,
+            user_id=user_id,
+            show_history=show_history,
+        )
+
+    async def decline_join_requests(
+        self,
+        chat_id: int,
+        user_ids: list[int],
+    ) -> Chat | None:
+        """Отклоняет несколько заявок на вступление.
+
+        Args:
+            chat_id: ID группы или канала.
+            user_ids: ID пользователей, чьи заявки нужно отклонить.
+
+        Returns:
+            Обновленный чат или ``None``, если сервер не вернул чат.
+        """
+        return await self._app.api.chats.decline_join_requests(
+            chat_id=chat_id,
+            user_ids=user_ids,
+        )
+
+    async def decline_join_request(
+        self,
+        chat_id: int,
+        user_id: int,
+    ) -> Chat | None:
+        """Отклоняет одну заявку на вступление.
+
+        Args:
+            chat_id: ID группы или канала.
+            user_id: ID пользователя, чью заявку нужно отклонить.
+
+        Returns:
+            Обновленный чат или ``None``, если сервер не вернул чат.
+        """
+        return await self._app.api.chats.decline_join_request(
+            chat_id=chat_id,
+            user_id=user_id,
+        )

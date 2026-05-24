@@ -1,4 +1,5 @@
 from .auth import AuthMixin
+from .bots import BotsMixin
 from .chat import ChatMixin
 from .message import MessageMixin
 from .self import SelfMixin
@@ -10,6 +11,7 @@ class BaseMixin(
     UserMixin,
     ChatMixin,
     MessageMixin,
+    BotsMixin,
     AuthMixin,
 ):
     """Собирает публичные API-методы клиента."""

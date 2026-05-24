@@ -12,9 +12,9 @@ from pymax.api.response import (
 from pymax.exceptions import PyMaxError
 from pymax.logging import get_logger
 from pymax.protocol import Opcode
-from pymax.types.domain import Chat, Message
+from pymax.types.domain import Chat, Member, Message
 
-from .enums import ChatLinkPrefix, ChatPayloadKey
+from .enums import ChatLinkPrefix, ChatMemberOperation, ChatPayloadKey
 from .payloads import (
     ChangeGroupProfilePayload,
     ChangeGroupSettingsOptions,
@@ -23,9 +23,11 @@ from .payloads import (
     CreateGroupMessage,
     CreateGroupPayload,
     FetchChatsPayload,
+    FetchJoinRequests,
     GetChatInfoPayload,
     InviteUsersPayload,
     JoinChatPayload,
+    JoinRequestActionPayload,
     LeaveChatPayload,
     LinkInfoPayload,
     RemoveUsersPayload,
@@ -275,3 +277,81 @@ class ChatService:
             for chat in parse_payload_list(response, ChatPayloadKey.CHATS, Chat)
         ]
         return chats
+
+    async def get_join_requests(
+        self, chat_id: int, count: int = 100
+    ) -> list[Member]:
+        frame = FetchJoinRequests(chat_id=chat_id, count=count)
+
+        response = await self.app.invoke(
+            Opcode.CHAT_MEMBERS, frame.to_payload()
+        )
+
+        return parse_payload_list(response, ChatPayloadKey.MEMBERS, Member)
+
+    async def confirm_join_requests(
+        self,
+        chat_id: int,
+        user_ids: list[int],
+        show_history: bool = True,
+    ) -> Chat | None:
+        frame = JoinRequestActionPayload(
+            chat_id=chat_id,
+            user_ids=user_ids,
+            show_history=show_history,
+            operation=ChatMemberOperation.ADD,
+        )
+
+        response = await self.app.invoke(
+            Opcode.CHAT_MEMBERS_UPDATE, frame.to_payload()
+        )
+
+        chat = parse_payload_item_model(response, ChatPayloadKey.CHAT, Chat)
+        if chat:
+            return self._cache_chat(chat)
+
+        return None
+
+    async def confirm_join_request(
+        self,
+        chat_id: int,
+        user_id: int,
+        show_history: bool = True,
+    ) -> Chat | None:
+        return await self.confirm_join_requests(
+            chat_id=chat_id,
+            user_ids=[user_id],
+            show_history=show_history,
+        )
+
+    async def decline_join_requests(
+        self,
+        chat_id: int,
+        user_ids: list[int],
+    ) -> Chat | None:
+        frame = JoinRequestActionPayload(
+            chat_id=chat_id,
+            user_ids=user_ids,
+            show_history=None,
+            operation=ChatMemberOperation.REMOVE,
+        )
+
+        response = await self.app.invoke(
+            Opcode.CHAT_MEMBERS_UPDATE, frame.to_payload()
+        )
+
+        chat = parse_payload_item_model(response, ChatPayloadKey.CHAT, Chat)
+        if chat:
+            return self._cache_chat(chat)
+
+        return None
+
+    async def decline_join_request(
+        self,
+        chat_id: int,
+        user_id: int,
+    ) -> Chat | None:
+        return await self.decline_join_requests(
+            chat_id=chat_id,
+            user_ids=[user_id],
+        )

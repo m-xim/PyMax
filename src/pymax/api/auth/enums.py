@@ -9,6 +9,8 @@ class AuthType(str, Enum):
 
 
 class ProfileOptions(int, Enum):
+    """Битовые/числовые признаки профиля, связанные с 2FA."""
+
     ESIA_VERIFIED_FLAG = 1
     SECOND_FACTOR_PASSWORD_ENABLED = 2
     SECOND_FACTOR_HAS_EMAIL = 3
@@ -16,6 +18,8 @@ class ProfileOptions(int, Enum):
 
 
 class TwoFactorAction(int, Enum):
+    """Действия 2FA, передаваемые в expectedCapabilities."""
+
     SET_PASSWORD = 0
     UPDATE_PASSWORD = 1
     RESTORE_PASSWORD = 2

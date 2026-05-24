@@ -66,10 +66,10 @@ class AuthMixin(IClientProtocol):
         return await self._app.api.auth.authorize_qr_login(qr_link=qr_link)
 
     async def check_2fa(self) -> bool:
-        """Проверяет, есть ли 2fa на аккаунте
+        """Проверяет, включена ли 2FA для текущей учетной записи.
 
         Returns:
-            ``True``, если на аккаунте установлен 2fa
+            ``True``, если на аккаунте установлен пароль 2FA.
         """
 
         return await self._app.api.auth.check_2fa()
