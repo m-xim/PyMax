@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from pymax.logging import get_logger
 
 from .auth import AuthService
+from .bots import BotsService
 from .chats import ChatService
 from .messages import MessageService
 from .self import SelfService
@@ -25,6 +26,7 @@ class ApiFacade:
         self.messages = MessageService(app)
         self.chats = ChatService(app)
         self.users = UserService(app)
+        self.bots = BotsService(app)
         self.account = SelfService(app)
         self.session = SessionService(app)
         self.auth = AuthService(app)

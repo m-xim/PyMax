@@ -15,3 +15,12 @@ class Capability(int, Enum):
     SECOND_FACTOR_HAS_EMAIL = 3
     SECOND_FACTOR_HAS_HINT = 4
     REMOVE_2FA = 5
+
+
+class TwoFactorAction(int, Enum):
+    SET_PASSWORD = 0
+    UPDATE_PASSWORD = 1
+    RESTORE_PASSWORD = 2
+    HINT = 3
+    EMAIL = 4
+    REMOVE_2FA = 5

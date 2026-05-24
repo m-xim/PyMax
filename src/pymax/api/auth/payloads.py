@@ -4,7 +4,7 @@ from pymax.api.models import CamelModel
 from pymax.api.session.payloads import MobileUserAgentPayload
 from pymax.types.domain.sync import DEFAULT_CONFIG_HASH, ConfigHash, SyncState
 
-from .enums import AuthType, Capability
+from .enums import AuthType, TwoFactorAction
 
 
 class RequestCodePayload(CamelModel):
@@ -115,7 +115,7 @@ class SetHintPayload(CamelModel):
 
 
 class SetTwoFactorPayload(CamelModel):
-    expected_capabilities: list[Capability]
+    expected_capabilities: list[TwoFactorAction]
     track_id: str
     password: str
     hint: str | None = None
@@ -123,9 +123,9 @@ class SetTwoFactorPayload(CamelModel):
 
 class RemoveTwoFactorPayload(CamelModel):
     track_id: str
-    remove2fa: bool = True
-    expected_capabilities: list[Capability] = Field(
-        default_factory=lambda: [Capability.REMOVE_2FA]
+    remove2fa: bool = Field(default=True, alias="remove2fa")
+    expected_capabilities: list[TwoFactorAction] = Field(
+        default_factory=lambda: [TwoFactorAction.REMOVE_2FA]
     )
 
 

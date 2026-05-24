@@ -17,7 +17,7 @@ from pymax.types.domain.auth import (
 )
 from pymax.types.domain.login import LoginResponse
 
-from .enums import Capability
+from .enums import TwoFactorAction
 from .payloads import (
     ApproveQrLoginPayload,
     CheckPasswordChallengePayload,
@@ -264,13 +264,13 @@ class AuthService:
             await self._set_hint(track_id, str(hint))
             has_hint = True
 
-        expected_capabilities = [Capability.DEFAULT]
+        expected_capabilities = [TwoFactorAction.SET_PASSWORD]
 
         if has_hint:
-            expected_capabilities.append(Capability.SECOND_FACTOR_HAS_HINT)
+            expected_capabilities.append(TwoFactorAction.HINT)
 
         if has_email:
-            expected_capabilities.append(Capability.SECOND_FACTOR_HAS_EMAIL)
+            expected_capabilities.append(TwoFactorAction.EMAIL)
 
         frame = SetTwoFactorPayload(
             track_id=track_id,

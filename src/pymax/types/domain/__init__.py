@@ -1,4 +1,5 @@
 from .attachments import *
+from .bots import InitData
 from .chat import Chat
 from .error import MaxApiError
 from .folder import Folder, FolderList, FolderUpdate
