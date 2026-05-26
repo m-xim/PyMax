@@ -81,6 +81,20 @@ async def test_pending_requests_resolve_reject_discard_and_cancel() -> None:
 
 
 @pytest.mark.asyncio
+async def test_connection_next_seq_wraps_after_uint16_max() -> None:
+    manager = ConnectionManager(
+        reader=QueueReader([]),
+        transport=FakeTransport(),
+        protocol=FakeProtocol(),
+    )
+
+    manager._seq = 0xFFFE
+
+    assert manager.next_seq() == 0xFFFF
+    assert manager.next_seq() == 0
+
+
+@pytest.mark.asyncio
 async def test_connection_request_resolves_when_matching_response_arrives() -> None:
     transport = FakeTransport()
     manager = ConnectionManager(

@@ -52,6 +52,39 @@ def test_tcp_protocol_roundtrip() -> None:
     )
 
 
+def test_tcp_protocol_supports_two_byte_sequence_ids() -> None:
+    protocol = TcpProtocol()
+    outbound = OutboundFrame(
+        ver=protocol.version,
+        opcode=Opcode.PING,
+        cmd=Command.REQUEST,
+        seq=0xFFFF,
+        payload={"interactive": True},
+    )
+
+    decoded = protocol.decode(protocol.encode(outbound))
+
+    assert decoded.seq == 0xFFFF
+    assert decoded.opcode == Opcode.PING
+
+
+def test_tcp_framer_uses_expected_header_layout() -> None:
+    framer = TcpPacketFramer()
+    packed = framer.pack(
+        ver=10,
+        cmd=Command.RESPONSE,
+        seq=0x0100,
+        opcode=Opcode.PING,
+        flags=2,
+        payload_bytes=b"abc",
+    )
+
+    assert framer.HEADER_SIZE == 10
+    assert packed[: framer.HEADER_SIZE] == bytes(
+        [0x0A, 0x01, 0x01, 0x00, 0x00, 0x01, 0x02, 0x00, 0x00, 0x03]
+    )
+
+
 def test_tcp_framer_handles_short_and_incomplete_packets() -> None:
     framer = TcpPacketFramer()
     packed = framer.pack(

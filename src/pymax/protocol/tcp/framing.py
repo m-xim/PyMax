@@ -4,14 +4,8 @@ from pymax.protocol import PackedPacket, TcpPacketHeader
 
 
 class TcpPacketFramer:
-    HEADER_STRUCT = struct.Struct(">BHBHI")
+    HEADER_STRUCT = struct.Struct(">BBHHI")
     HEADER_SIZE = HEADER_STRUCT.size
-
-    def _pack_cmd(self, cmd: int) -> int:
-        return (cmd & 0xFF) << 8
-
-    def _unpack_cmd(self, packed_cmd: int) -> int:
-        return (packed_cmd >> 8) & 0xFF
 
     def pack(
         self,
@@ -26,7 +20,7 @@ class TcpPacketFramer:
         packed_len = ((flags & 0xFF) << 24) | (len(payload_bytes) & 0x00FFFFFF)
         header = self.HEADER_STRUCT.pack(
             ver,
-            self._pack_cmd(cmd),
+            cmd,
             seq,
             opcode,
             packed_len,
@@ -48,7 +42,7 @@ class TcpPacketFramer:
         return PackedPacket(
             header=TcpPacketHeader(
                 ver=ver,
-                cmd=self._unpack_cmd(cmd),
+                cmd=cmd,
                 seq=seq,
                 opcode=opcode,
                 flags=flags,

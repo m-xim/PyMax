@@ -197,7 +197,7 @@ class ConnectionManager:
             )
 
     def next_seq(self) -> int:
-        self._seq = (self._seq + 1) % 0xFFFFFFFF
+        self._seq = (self._seq + 1) % 0x10000
         return self._seq
 
     @property
