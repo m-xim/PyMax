@@ -101,3 +101,17 @@ class LeaveChatPayload(CamelModel):
 
 class FetchChatsPayload(CamelModel):
     marker: int
+
+
+class FetchJoinRequests(CamelModel):
+    chat_id: int
+    type: str = "JOIN_REQUEST"  # ENUM!!!!!
+    count: int = 100
+
+
+class JoinRequestActionPayload(CamelModel):
+    chat_id: int
+    user_ids: list[int]
+    type: str = "JOIN_REQUEST"  # TODO: ENUMM!!!
+    show_history: bool | None = True
+    operation: ChatMemberOperation

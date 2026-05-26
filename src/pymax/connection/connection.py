@@ -80,6 +80,7 @@ class ConnectionManager:
         self._connection_lost = True
         self.requests.cancel_all(exc=exc)
         await self.transport.close()
+        self._is_open = False
 
     async def send(self, frame: OutboundFrame) -> None:
         if not self._is_open:
@@ -145,19 +146,28 @@ class ConnectionManager:
                 model = self.protocol.decode(frame)
                 await self._handle_inbound(model)
 
-        except EOFError as e:
+        except EOFError:
             logger.warning("connection closed by server")
-            self.requests.cancel_all(exc=ConnectionError("Connection closed by the server"))
+            self.requests.cancel_all(
+                exc=ConnectionError("Connection closed by the server")
+            )
             self._connection_lost = True
+            self._is_open = False
         except TimeoutError as e:
             logger.exception("connection timed out")
-            self.requests.cancel_all(exc=ConnectionError("Connection timed out"))
+            self.requests.cancel_all(
+                exc=ConnectionError("Connection timed out")
+            )
             self._connection_lost = True
+            self._is_open = False
             raise e
         except Exception as e:
             logger.exception("connection receive loop failed")
-            self.requests.cancel_all(exc=ConnectionError(f"Connection error: {e}"))
+            self.requests.cancel_all(
+                exc=ConnectionError(f"Connection error: {e}")
+            )
             self._connection_lost = True
+            self._is_open = False
             raise e
 
     async def _handle_inbound(self, frame: InboundFrame) -> None:
@@ -197,7 +207,7 @@ class ConnectionManager:
             )
 
     def next_seq(self) -> int:
-        self._seq = (self._seq + 1) % 0xFFFFFFFF
+        self._seq = (self._seq + 1) % 0x10000
         return self._seq
 
     @property

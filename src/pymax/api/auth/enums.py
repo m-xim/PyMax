@@ -8,10 +8,21 @@ class AuthType(str, Enum):
     RESEND = "RESEND"
 
 
-class Capability(int, Enum):
-    DEFAULT = 0  # В душе не чаю что это такое но при первой установке 2фа там 0 3 4 так что пусть будет дефолт
+class ProfileOptions(int, Enum):
+    """Битовые/числовые признаки профиля, связанные с 2FA."""
+
     ESIA_VERIFIED_FLAG = 1
     SECOND_FACTOR_PASSWORD_ENABLED = 2
     SECOND_FACTOR_HAS_EMAIL = 3
     SECOND_FACTOR_HAS_HINT = 4
+
+
+class TwoFactorAction(int, Enum):
+    """Действия 2FA, передаваемые в expectedCapabilities."""
+
+    SET_PASSWORD = 0
+    UPDATE_PASSWORD = 1
+    RESTORE_PASSWORD = 2
+    HINT = 3
+    EMAIL = 4
     REMOVE_2FA = 5

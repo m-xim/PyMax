@@ -8,13 +8,15 @@ logger = get_logger(__name__)
 
 
 class TCPReader(BaseReader):
-    def __init__(self, transport: TCPTransport, framer: TcpPacketFramer) -> None:
+    def __init__(
+        self, transport: TCPTransport, framer: TcpPacketFramer
+    ) -> None:
         super().__init__()
         self.transport = transport
         self.framer = framer
 
     async def read(self) -> bytes:
-        header_bytes = await self.transport.recv(10)
+        header_bytes = await self.transport.recv(self.framer.HEADER_SIZE)
         payload_len = self.framer.unpack_header(header_bytes)
         if payload_len is None:
             logger.warning(

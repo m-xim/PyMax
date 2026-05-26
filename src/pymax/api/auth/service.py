@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pymax.api.response import payload_item, payload_keys, require_payload_model
+from pymax.api.response import (
+    payload_item,
+    payload_keys,
+    require_payload_model,
+)
 from pymax.api.session.enums import DeviceType
 from pymax.auth import EmailCodeProvider
 from pymax.auth.providers import ConsoleEmailCodeProvider
@@ -17,8 +21,9 @@ from pymax.types.domain.auth import (
 )
 from pymax.types.domain.login import LoginResponse
 
-from .enums import Capability
+from .enums import ProfileOptions, TwoFactorAction
 from .payloads import (
+    ApproveQrLoginPayload,
     CheckPasswordChallengePayload,
     CheckQrPayload,
     ConfirmQrPayload,
@@ -51,14 +56,18 @@ class AuthService:
     async def request_code(self, phone: str) -> StartAuthResponse:
         logger.info("requesting sms code phone_set=%s", bool(phone))
         frame = RequestCodePayload(phone=phone)
-        response = await self.app.invoke(Opcode.AUTH_REQUEST, frame.to_payload())
+        response = await self.app.invoke(
+            Opcode.AUTH_REQUEST, frame.to_payload()
+        )
         logger.debug(
             "sms code request accepted payload_keys=%s",
             payload_keys(response),
         )
         return require_payload_model(response, StartAuthResponse)
 
-    async def send_code(self, token: str, verify_code: str) -> CheckCodeResponse:
+    async def send_code(
+        self, token: str, verify_code: str
+    ) -> CheckCodeResponse:
         logger.info(
             "sending sms code token_set=%s code_set=%s",
             bool(token),
@@ -152,14 +161,18 @@ class AuthService:
     async def check_qr(self, track_id: str) -> CheckQrResponse:
         frame = CheckQrPayload(track_id=track_id)
 
-        response = await self.app.invoke(Opcode.GET_QR_STATUS, frame.to_payload())
+        response = await self.app.invoke(
+            Opcode.GET_QR_STATUS, frame.to_payload()
+        )
 
         return require_payload_model(response, CheckQrResponse)
 
     async def confirm_qr(self, track_id: str) -> CheckCodeResponse:
         frame = ConfirmQrPayload(track_id=track_id)
 
-        response = await self.app.invoke(Opcode.LOGIN_BY_QR, frame.to_payload())
+        response = await self.app.invoke(
+            Opcode.LOGIN_BY_QR, frame.to_payload()
+        )
 
         return require_payload_model(response, CheckCodeResponse)
 
@@ -182,11 +195,15 @@ class AuthService:
         logger.debug("creating auth track")
         frame = CreateAuthTrackPayload()
 
-        response = await self.app.invoke(Opcode.AUTH_CREATE_TRACK, frame.to_payload())
+        response = await self.app.invoke(
+            Opcode.AUTH_CREATE_TRACK, frame.to_payload()
+        )
 
         return payload_item(response, "trackId", str)
 
-    async def _set_email(self, track_id: str, email: str, provider: EmailCodeProvider) -> bool:
+    async def _set_email(
+        self, track_id: str, email: str, provider: EmailCodeProvider
+    ) -> bool:
         logger.info("setting 2fa email email_set=%s", bool(email))
 
         frame = RequestEmailCodePayload(
@@ -225,7 +242,9 @@ class AuthService:
             track_id=track_id,
             password=password,
         )
-        await self.app.invoke(Opcode.AUTH_VALIDATE_PASSWORD, frame.to_payload())
+        await self.app.invoke(
+            Opcode.AUTH_VALIDATE_PASSWORD, frame.to_payload()
+        )
 
         return True
 
@@ -263,13 +282,13 @@ class AuthService:
             await self._set_hint(track_id, str(hint))
             has_hint = True
 
-        expected_capabilities = [Capability.DEFAULT]
+        expected_capabilities = [TwoFactorAction.SET_PASSWORD]
 
         if has_hint:
-            expected_capabilities.append(Capability.SECOND_FACTOR_HAS_HINT)
+            expected_capabilities.append(TwoFactorAction.HINT)
 
         if has_email:
-            expected_capabilities.append(Capability.SECOND_FACTOR_HAS_EMAIL)
+            expected_capabilities.append(TwoFactorAction.EMAIL)
 
         frame = SetTwoFactorPayload(
             track_id=track_id,
@@ -310,4 +329,48 @@ class AuthService:
 
         await self.app.invoke(Opcode.AUTH_SET_2FA, frame.to_payload())
 
+        return True
+
+    async def authorize_qr_login(self, qr_link: str) -> bool:
+        logger.info("approving qr login qr_link_set=%s", bool(qr_link))
+
+        frame = ApproveQrLoginPayload(qr_link=qr_link)
+
+        await self.app.invoke(Opcode.AUTH_QR_APPROVE, frame.to_payload())
+
+        return True
+
+    async def check_2fa(self) -> bool:
+        if not self.app.me or not self.app.me.profile_options:
+            return False
+
+        return (
+            ProfileOptions.SECOND_FACTOR_PASSWORD_ENABLED
+            in self.app.me.profile_options
+        )
+
+    async def change_password(
+        self, password_old: str, password_new: str
+    ) -> bool:
+        track_id = await self._get_track_id()
+
+        if not track_id:
+            logger.error("missing track_id in auth create track response")
+            raise RuntimeError("Failed to create auth track")
+
+        await self._check_2fa_password(track_id, password_old)
+
+        await self._set_password(track_id, password_new)
+
+        expected_capabilities = [TwoFactorAction.UPDATE_PASSWORD]
+
+        frame = SetTwoFactorPayload(
+            track_id=track_id,
+            password=password_new,
+            hint=None,
+            expected_capabilities=expected_capabilities,
+        )
+
+        await self.app.invoke(Opcode.AUTH_SET_2FA, frame.to_payload())
+        logger.info("2fa password set successfully")
         return True

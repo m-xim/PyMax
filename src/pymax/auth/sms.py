@@ -2,11 +2,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from pymax.auth.base import AuthFlow
 from pymax.exceptions import ApiError
 from pymax.logging import get_logger
 
 from .models import AuthResult
-from .providers import ConsolePasswordProvider, PasswordProvider, SmsCodeProvider
+from .providers import (
+    ConsolePasswordProvider,
+    PasswordProvider,
+    SmsCodeProvider,
+)
 
 if TYPE_CHECKING:
     from pymax.app import App
@@ -15,7 +20,7 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-class SmsAuthFlow:
+class SmsAuthFlow(AuthFlow):
     """Стандартная SMS-авторизация ``Client``.
 
     Flow запрашивает SMS-код, отправляет его в Max, при необходимости проходит
@@ -104,13 +109,17 @@ class SmsAuthFlow:
                 continue
 
             try:
-                response = await app.api.auth.check_password(track_id, password)
+                response = await app.api.auth.check_password(
+                    track_id, password
+                )
             except ApiError as e:
                 logger.error("2fa password check failed: %s", e)
                 continue
 
             if response.error:
-                logger.error("2fa password check failed error=%s", response.error)
+                logger.error(
+                    "2fa password check failed error=%s", response.error
+                )
                 continue
 
             if response.login_token:

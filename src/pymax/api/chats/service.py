@@ -12,9 +12,9 @@ from pymax.api.response import (
 from pymax.exceptions import PyMaxError
 from pymax.logging import get_logger
 from pymax.protocol import Opcode
-from pymax.types.domain import Chat, Message
+from pymax.types.domain import Chat, Member, Message
 
-from .enums import ChatLinkPrefix, ChatPayloadKey
+from .enums import ChatLinkPrefix, ChatMemberOperation, ChatPayloadKey
 from .payloads import (
     ChangeGroupProfilePayload,
     ChangeGroupSettingsOptions,
@@ -23,9 +23,11 @@ from .payloads import (
     CreateGroupMessage,
     CreateGroupPayload,
     FetchChatsPayload,
+    FetchJoinRequests,
     GetChatInfoPayload,
     InviteUsersPayload,
     JoinChatPayload,
+    JoinRequestActionPayload,
     LeaveChatPayload,
     LinkInfoPayload,
     RemoveUsersPayload,
@@ -70,7 +72,9 @@ class ChatService:
         if self.app.chats is None:
             return
 
-        self.app.chats = [chat for chat in self.app.chats if chat.id != chat_id]
+        self.app.chats = [
+            chat for chat in self.app.chats if chat.id != chat_id
+        ]
 
     @staticmethod
     def _process_chat_join_link(link: str) -> str | None:
@@ -108,7 +112,9 @@ class ChatService:
             return None
 
         chat = self._cache_chat(chat)
-        message = require_payload_model(response, Message).bind(self.app.api.messages)
+        message = require_payload_model(response, Message).bind(
+            self.app.api.messages
+        )
         return chat, message
 
     async def invite_users_to_group(
@@ -139,7 +145,9 @@ class ChatService:
         user_ids: list[int],
         show_history: bool = True,
     ) -> Chat | None:
-        return await self.invite_users_to_group(chat_id, user_ids, show_history)
+        return await self.invite_users_to_group(
+            chat_id, user_ids, show_history
+        )
 
     async def remove_users_from_group(
         self,
@@ -183,7 +191,9 @@ class ChatService:
             ),
         )
 
-        response = await self.app.invoke(Opcode.CHAT_UPDATE, frame.to_payload())
+        response = await self.app.invoke(
+            Opcode.CHAT_UPDATE, frame.to_payload()
+        )
         chat = parse_payload_item_model(response, ChatPayloadKey.CHAT, Chat)
         if chat:
             self._cache_chat(chat)
@@ -200,7 +210,9 @@ class ChatService:
             description=description,
         )
 
-        response = await self.app.invoke(Opcode.CHAT_UPDATE, frame.to_payload())
+        response = await self.app.invoke(
+            Opcode.CHAT_UPDATE, frame.to_payload()
+        )
         chat = parse_payload_item_model(response, ChatPayloadKey.CHAT, Chat)
         if chat:
             self._cache_chat(chat)
@@ -230,7 +242,9 @@ class ChatService:
 
     async def rework_invite_link(self, chat_id: int) -> Chat:
         frame = ReworkInviteLinkPayload(chat_id=chat_id)
-        response = await self.app.invoke(Opcode.CHAT_UPDATE, frame.to_payload())
+        response = await self.app.invoke(
+            Opcode.CHAT_UPDATE, frame.to_payload()
+        )
         chat = require_payload_item_model(response, ChatPayloadKey.CHAT, Chat)
         return self._cache_chat(chat)
 
@@ -240,12 +254,18 @@ class ChatService:
             for chat_id in chat_ids
             if (chat := self._get_cached_chat(chat_id)) is not None
         }
-        missed_chat_ids = [chat_id for chat_id in chat_ids if chat_id not in cached]
+        missed_chat_ids = [
+            chat_id for chat_id in chat_ids if chat_id not in cached
+        ]
 
         if missed_chat_ids:
             frame = GetChatInfoPayload(chat_ids=missed_chat_ids)
-            response = await self.app.invoke(Opcode.CHAT_INFO, frame.to_payload())
-            for chat in parse_payload_list(response, ChatPayloadKey.CHATS, Chat):
+            response = await self.app.invoke(
+                Opcode.CHAT_INFO, frame.to_payload()
+            )
+            for chat in parse_payload_list(
+                response, ChatPayloadKey.CHATS, Chat
+            ):
                 chat = self._cache_chat(chat)
                 cached[chat.id] = chat
 
@@ -272,6 +292,86 @@ class ChatService:
 
         chats = [
             self._cache_chat(chat)
-            for chat in parse_payload_list(response, ChatPayloadKey.CHATS, Chat)
+            for chat in parse_payload_list(
+                response, ChatPayloadKey.CHATS, Chat
+            )
         ]
         return chats
+
+    async def get_join_requests(
+        self, chat_id: int, count: int = 100
+    ) -> list[Member]:
+        frame = FetchJoinRequests(chat_id=chat_id, count=count)
+
+        response = await self.app.invoke(
+            Opcode.CHAT_MEMBERS, frame.to_payload()
+        )
+
+        return parse_payload_list(response, ChatPayloadKey.MEMBERS, Member)
+
+    async def confirm_join_requests(
+        self,
+        chat_id: int,
+        user_ids: list[int],
+        show_history: bool = True,
+    ) -> Chat | None:
+        frame = JoinRequestActionPayload(
+            chat_id=chat_id,
+            user_ids=user_ids,
+            show_history=show_history,
+            operation=ChatMemberOperation.ADD,
+        )
+
+        response = await self.app.invoke(
+            Opcode.CHAT_MEMBERS_UPDATE, frame.to_payload()
+        )
+
+        chat = parse_payload_item_model(response, ChatPayloadKey.CHAT, Chat)
+        if chat:
+            return self._cache_chat(chat)
+
+        return None
+
+    async def confirm_join_request(
+        self,
+        chat_id: int,
+        user_id: int,
+        show_history: bool = True,
+    ) -> Chat | None:
+        return await self.confirm_join_requests(
+            chat_id=chat_id,
+            user_ids=[user_id],
+            show_history=show_history,
+        )
+
+    async def decline_join_requests(
+        self,
+        chat_id: int,
+        user_ids: list[int],
+    ) -> Chat | None:
+        frame = JoinRequestActionPayload(
+            chat_id=chat_id,
+            user_ids=user_ids,
+            show_history=None,
+            operation=ChatMemberOperation.REMOVE,
+        )
+
+        response = await self.app.invoke(
+            Opcode.CHAT_MEMBERS_UPDATE, frame.to_payload()
+        )
+
+        chat = parse_payload_item_model(response, ChatPayloadKey.CHAT, Chat)
+        if chat:
+            return self._cache_chat(chat)
+
+        return None
+
+    async def decline_join_request(
+        self,
+        chat_id: int,
+        user_id: int,
+    ) -> Chat | None:
+        return await self.decline_join_requests(
+            chat_id=chat_id,
+            user_ids=[user_id],
+        )

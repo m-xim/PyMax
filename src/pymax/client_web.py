@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pymax.auth.base import AuthFlow
 from pymax.auth.providers import ConsoleQrHandler, QrHandler
 from pymax.auth.qr import QrAuthFlow
 from pymax.connection import ConnectionManager
@@ -34,7 +35,7 @@ class WebClient(BaseClient["WebClient"]):
         session_name: str = "session.db",
         work_dir: str = ".",
         extra_config: ExtraConfig | None = None,
-        auth_flow: QrAuthFlow | None = None,
+        auth_flow: AuthFlow | None = None,
         qr_provider: QrHandler | None = None,
     ) -> None:
         self.extra_config = extra_config or ExtraConfig()
@@ -53,7 +54,8 @@ class WebClient(BaseClient["WebClient"]):
         self._config = self._build_config(
             phone=None,
             user_agent=(
-                self.extra_config.user_agent or self.extra_config.generate_web_user_agent()
+                self.extra_config.user_agent
+                or self.extra_config.generate_web_user_agent()
             ),
         )
 

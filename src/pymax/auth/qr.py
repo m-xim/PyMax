@@ -4,8 +4,7 @@ import asyncio
 import time
 from typing import TYPE_CHECKING
 
-import qrcode
-
+from pymax.auth.base import AuthFlow
 from pymax.exceptions import ApiError
 from pymax.logging import get_logger
 
@@ -20,7 +19,7 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-class QrAuthFlow:
+class QrAuthFlow(AuthFlow):
     """Стандартная QR-авторизация ``WebClient``.
 
     Flow получает QR-ссылку, передает ее в ``QrHandler``, ждет подтверждения и
@@ -119,17 +118,23 @@ class QrAuthFlow:
                 continue
 
             try:
-                response = await app.api.auth.check_password(track_id, password)
+                response = await app.api.auth.check_password(
+                    track_id, password
+                )
             except ApiError as e:
                 logger.error("2fa password check failed: %s", e)
                 continue
 
             if response.error:
-                logger.error("2fa password check failed error=%s", response.error)
+                logger.error(
+                    "2fa password check failed error=%s", response.error
+                )
                 continue
 
             if response.login_token:
                 logger.info("2fa password authentication completed")
                 return response.login_token
 
-            logger.error("2fa password response did not contain login token; retrying")
+            logger.error(
+                "2fa password response did not contain login token; retrying"
+            )
