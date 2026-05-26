@@ -130,11 +130,15 @@ async def test_connection_open_recv_loop_dispatches_events_and_closes() -> (
 ):
     events: list[InboundFrame] = []
     transport = FakeTransport()
+
+    async def on_event(event: InboundFrame) -> None:
+        events.append(event)
+
     manager = ConnectionManager(
         reader=QueueReader([b"5:42", EOFError()]),
         transport=transport,
         protocol=FakeProtocol(),
-        on_event=lambda event: events.append(event),
+        on_event=on_event,
     )
 
     await manager.open()
@@ -143,6 +147,7 @@ async def test_connection_open_recv_loop_dispatches_events_and_closes() -> (
     with pytest.raises(ConnectionError, match="Connection lost"):
         await manager.wait_closed()
 
+    assert manager.is_open is False
     await manager.close()
     assert transport.closed is True
     assert [event.opcode for event in events] == [42]

@@ -59,10 +59,14 @@ class TCPTransport(Transport):
         )
 
     async def close(self) -> None:
-        if self._writer:
+        writer = self._writer
+        self._reader = None
+        self._writer = None
+
+        if writer:
             logger.debug("tcp close")
-            self._writer.close()
-            await self._writer.wait_closed()
+            writer.close()
+            await writer.wait_closed()
             logger.debug("tcp closed")
 
     async def send(self, data: bytes | str) -> None:

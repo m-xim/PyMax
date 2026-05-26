@@ -98,7 +98,7 @@ async def test_tcp_transport_connect_send_recv_and_close(
     data = await transport.recv(3)
     await transport.close()
 
-    assert transport.connected is True
+    assert transport.connected is False
     assert writer.writes == [b"hi"]
     assert data == b"xxx"
     assert writer.closed is True

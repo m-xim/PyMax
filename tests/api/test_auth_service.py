@@ -235,8 +235,7 @@ async def test_check_2fa_reads_profile_options() -> None:
 
     assert await app.api.auth.check_2fa() is False
 
-    app.me = {"not": "a profile"}
-    app.me = app.api.auth.app.me = None
+    app.me = None
     assert await app.api.auth.check_2fa() is False
 
     from pymax.types.domain import Profile
