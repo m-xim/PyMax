@@ -36,10 +36,6 @@ class SelfMixin(IClientProtocol):
         Returns:
             ``True`` после успешного обновления. Клиент также обновит
             ``client.me`` и кеш текущего контакта.
-
-        Raises:
-            NotImplementedError: Если передан ``photo`` вместо
-                ``photo_token``.
         """
         return await self._app.api.account.change_profile(
             first_name=first_name,

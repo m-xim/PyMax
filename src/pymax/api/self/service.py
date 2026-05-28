@@ -9,6 +9,7 @@ from pymax.api.response import (
     require_payload_item_model,
     require_payload_model,
 )
+from pymax.files import Photo
 from pymax.logging import get_logger
 from pymax.protocol import Opcode
 from pymax.types.domain import FolderList, FolderUpdate, Profile
@@ -45,15 +46,17 @@ class SelfService:
         first_name: str,
         last_name: str | None = None,
         description: str | None = None,
-        photo: Any | None = None,
+        photo: Photo | None = None,
         *,
         photo_token: str | None = None,
     ) -> bool:
         if photo is not None:
-            raise NotImplementedError(
-                "Profile photo upload is not implemented without upload infra. "
-                "Pass photo_token instead."
-            )
+            attach = await self.app.api.uploads.upload_photo(photo, profile=True)
+            if photo_token:
+                logger.warning(
+                    "photo_token argument was provided but will be overridden by the uploaded photo token"
+                )
+                photo_token = attach.photo_token
 
         frame = ChangeProfilePayload(
             first_name=first_name,
