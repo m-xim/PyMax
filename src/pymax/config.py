@@ -100,7 +100,6 @@ class ClientConfig(BaseModel):
 
     protocol_version: int = 10
     request_timeout: float = 30.0
-    log_level: str = "INFO"
     telemetry: bool = False
 
     store: StoreProtocol | None = None
@@ -117,7 +116,7 @@ class ClientConfig(BaseModel):
 class ExtraConfig(BaseModel):
     """Дополнительные настройки ``Client`` и ``WebClient``.
 
-    Используйте ``ExtraConfig`` для token-логина, debug-логов, reconnect,
+    Используйте ``ExtraConfig`` для token-логина, reconnect,
     пользовательского device/user-agent и переопределения sync-state.
 
     Args:
@@ -134,7 +133,6 @@ class ExtraConfig(BaseModel):
         user_agent: Полностью заданный user-agent payload.
         mt_instance_id: Instance ID устройства.
         request_timeout: Timeout API-запросов в секундах.
-        log_level: Уровень логов ``pymax``.
         telemetry: Отправлять telemetry-события Max.
         sync: Переопределения sync-маркеров для login.
 
@@ -146,7 +144,6 @@ class ExtraConfig(BaseModel):
            client = Client(
                phone="+79990000000",
                extra_config=ExtraConfig(
-                   log_level="DEBUG",
                    reconnect=False,
                    sync=SyncOverrides(chats_sync=-1),
                ),
@@ -171,7 +168,6 @@ class ExtraConfig(BaseModel):
     mt_instance_id: str = Field(default_factory=lambda: str(uuid4()))
 
     request_timeout: float = 30.0
-    log_level: str = "INFO"
     telemetry: bool = True
 
     store: StoreProtocol | None = None

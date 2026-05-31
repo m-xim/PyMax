@@ -5,7 +5,7 @@ from pymax.auth.providers import ConsoleQrHandler, QrHandler
 from pymax.auth.qr import QrAuthFlow
 from pymax.connection import ConnectionManager
 from pymax.connection.readers import WSReader
-from pymax.logging import configure_logging, get_logger
+from pymax.logs import get_logger
 from pymax.protocol.ws import WsProtocol
 from pymax.transport.websocket import WebSocketTransport
 
@@ -42,7 +42,6 @@ class WebClient(BaseClient["WebClient"]):
         self.session_name = session_name
         self.work_dir = work_dir
 
-        configure_logging(self.extra_config.log_level)
         logger.debug(
             "creating web client session=%s work_dir=%s proxy_set=%s reconnect=%s",
             self.session_name,
