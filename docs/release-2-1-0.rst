@@ -22,7 +22,8 @@ PyMax 2.1.0
   ``opcode:2``, ``len/cof:4``. ``seq`` больше не падает после ``255``.
 * Upload фото, видео и файлов использует ``ExtraConfig.proxy`` для HTTP-отправки
   на upload URL.
-* ``MaxApiError.title`` и ``MaxApiError.localized_message`` могут быть ``None``.
+* ``ApiErrorPayload.title`` и ``ApiErrorPayload.localized_message`` могут быть
+  ``None``.
 
 Изменилось
 ----------
@@ -40,4 +41,5 @@ PyMax 2.1.0
 * Код на ``Client`` и ``WebClient`` обычно менять не нужно.
 * Импорт ``pymax.api.auth.enums.Capability`` замените на ``TwoFactorAction`` или
   ``ProfileOptions``.
-* Если код ждал строку в ``MaxApiError.title``, теперь нужно учитывать ``None``.
+* Если код ждал строку в ``ApiErrorPayload.title``, теперь нужно учитывать
+  ``None``.

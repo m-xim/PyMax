@@ -8,12 +8,18 @@ Troubleshooting
 
 .. code-block:: python
 
-   from pymax import Client, ExtraConfig
+   import logging
+
+   from pymax import Client
+
+   logging.basicConfig(
+       level=logging.DEBUG,
+       format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+   )
 
    client = Client(
        phone="+79990000000",
        work_dir="cache",
-       extra_config=ExtraConfig(log_level="DEBUG"),
    )
 
 Если событие не распознается, добавьте raw-handler:

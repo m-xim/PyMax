@@ -7,5 +7,3 @@ Client Config
 
 .. autoclass:: ExtraConfig
    :members:
-
-.. autofunction:: configure_logging
