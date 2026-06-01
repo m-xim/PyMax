@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Annotated, Any, TypeAlias
 from pydantic import Field, PrivateAttr, model_validator
 
 from pymax.files import File, Photo, Video
+from pymax.formatting import ParseMode
 from pymax.types.domain import (
     AudioAttachment,
     CallAttachment,
@@ -17,13 +18,12 @@ from pymax.types.domain import (
     StickerAttachment,
     VideoAttachment,
 )
-
-from .base import CamelModel
-from .element import Element
-from .enums import MessageStatus
+from pymax.types.domain.base import CamelModel
+from pymax.types.domain.element import Element
+from pymax.types.domain.enums import MessageStatus
 
 if TYPE_CHECKING:
-    from pymax.api.messages.service import MessageService
+    from pymax.api.messages.service import MessageService, SendText
 
 
 Attachment: TypeAlias = Annotated[
@@ -178,10 +178,11 @@ class Message(CamelModel):
 
     async def reply(
         self,
-        text: str,
+        text: SendText,
         attachments: SendAttachments = None,
         *,
         notify: bool = True,
+        parse_mode: ParseMode = ParseMode.MARKDOWN,
     ) -> Message | None:
         """Отправляет ответ на это сообщение в тот же чат.
 
@@ -191,6 +192,8 @@ class Message(CamelModel):
         :type attachments: SendAttachments
         :param notify: Отправить ли получателям push-уведомление.
         :type notify: bool
+        :param parse_mode: Режим разбора строкового текста.
+        :type parse_mode: ParseMode
         :returns: Отправленное сообщение или ``None``, если сервер не вернул
             его.
         :rtype: Message | None
@@ -205,15 +208,17 @@ class Message(CamelModel):
             reply_to=self.id,
             attachments=attachments,
             notify=notify,
+            parse_mode=parse_mode,
         )
 
     async def answer(
         self,
-        text: str,
+        text: SendText,
         reply_to: int | None = None,
         attachments: SendAttachments = None,
         *,
         notify: bool = True,
+        parse_mode: ParseMode = ParseMode.MARKDOWN,
     ) -> Message | None:
         """Отправляет сообщение в тот же чат.
 
@@ -225,6 +230,8 @@ class Message(CamelModel):
         :type attachments: SendAttachments
         :param notify: Отправить ли получателям push-уведомление.
         :type notify: bool
+        :param parse_mode: Режим разбора строкового текста.
+        :type parse_mode: ParseMode
         :returns: Отправленное сообщение или ``None``, если сервер не вернул
             его.
         :rtype: Message | None
@@ -239,9 +246,10 @@ class Message(CamelModel):
             reply_to=reply_to,
             attachments=attachments,
             notify=notify,
+            parse_mode=parse_mode,
         )
 
-    async def pin(self, notify_pin: bool = True) -> bool:
+    async def pin(self, *, notify_pin: bool = True) -> bool:
         """Закрепляет это сообщение в чате.
 
         :param notify_pin: Отправить ли уведомление о закреплении.
@@ -259,7 +267,7 @@ class Message(CamelModel):
             notify_pin=notify_pin,
         )
 
-    async def delete(self, for_me: bool = False) -> bool:
+    async def delete(self, *, for_me: bool = False) -> bool:
         """Удаляет это сообщение.
 
         :param for_me: Удалить сообщение только для текущего аккаунта.

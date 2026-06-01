@@ -1,5 +1,7 @@
 from pymax.api.messages.enums import ItemType
-from pymax.api.messages.service import SendAttachments
+from pymax.api.messages.service import SendAttachments, SendText
+from pymax.formatting import ParseMode
+from pymax.infra.protocol import IClientProtocol
 from pymax.types import (
     FileRequest,
     Message,
@@ -8,8 +10,6 @@ from pymax.types import (
     VideoRequest,
 )
 
-from .protocol import IClientProtocol
-
 
 class MessageMixin(IClientProtocol):
     """Методы клиента для сообщений, истории, реакций и вложений."""
@@ -17,11 +17,12 @@ class MessageMixin(IClientProtocol):
     async def send_message(
         self,
         chat_id: int,
-        text: str,
+        text: SendText,
         reply_to: int | None = None,
         attachments: SendAttachments = None,
         *,
         notify: bool = True,
+        parse_mode: ParseMode = ParseMode.MARKDOWN,
     ) -> Message | None:
         """Отправляет сообщение в чат.
 
@@ -31,6 +32,7 @@ class MessageMixin(IClientProtocol):
             reply_to: ID сообщения для ответа.
             attachments: Файлы, фотографии или видео для отправки.
             notify: Отправить ли получателям push-уведомление.
+            parse_mode: Режим разбора строкового текста.
 
         Returns:
             Отправленное сообщение или ``None``, если сервер не вернул его.
@@ -41,6 +43,7 @@ class MessageMixin(IClientProtocol):
             reply_to,
             attachments,
             notify=notify,
+            parse_mode=parse_mode,
         )
 
     async def fetch_history(
@@ -52,6 +55,7 @@ class MessageMixin(IClientProtocol):
         forward_time: int = 0,
         from_time: int | None = None,
         item_type: ItemType = ItemType.REGULAR,
+        *,
         get_chat: bool = False,
         get_messages: bool = True,
         interactive: bool = False,
@@ -88,10 +92,7 @@ class MessageMixin(IClientProtocol):
         )
 
     async def delete_message(
-        self,
-        chat_id: int,
-        message_ids: list[int],
-        for_me: bool,
+        self, chat_id: int, message_ids: list[int], *, for_me: bool
     ) -> bool:
         """Удаляет сообщения из чата.
 
@@ -110,10 +111,7 @@ class MessageMixin(IClientProtocol):
         )
 
     async def pin_message(
-        self,
-        chat_id: int,
-        message_id: int,
-        notify_pin: bool,
+        self, chat_id: int, message_id: int, *, notify_pin: bool
     ) -> bool:
         """Закрепляет сообщение в чате.
 
@@ -176,10 +174,7 @@ class MessageMixin(IClientProtocol):
         )
 
     async def add_reaction(
-        self,
-        chat_id: int,
-        message_id: str,
-        reaction: str,
+        self, chat_id: int, message_id: str, reaction: str
     ) -> ReactionInfo | None:
         """Добавляет реакцию к сообщению.
 
