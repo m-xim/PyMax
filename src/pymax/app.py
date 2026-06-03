@@ -181,7 +181,7 @@ class App(Generic[ClientT]):
         opcode: int,
         payload: dict[str, Any],
         cmd: int = Command.REQUEST,
-        timeout: float | None = 30.0,
+        timeout: float | None = None,
         compress: bool = False,
     ) -> InboundFrame:
         seq = self.connection.next_seq()
@@ -203,9 +203,10 @@ class App(Generic[ClientT]):
             payload_keys,
         )
         logger.debug("Request data=%s", frame.model_dump())
-        response = await self.connection.request(
-            frame, timeout=self.config.request_timeout or timeout
+        request_timeout = (
+            self.config.request_timeout if timeout is None else timeout
         )
+        response = await self.connection.request(frame, timeout=request_timeout)
         response_keys = sorted(response.payload.keys()) if response.payload else []
         logger.debug(
             "response opcode=%s cmd=%s seq=%s payload_keys=%s",

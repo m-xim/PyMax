@@ -1,8 +1,6 @@
-from collections.abc import Iterator
 from typing import Any
 
 from pydantic import Field
-from typing_extensions import override
 
 from .base import CamelModel
 
