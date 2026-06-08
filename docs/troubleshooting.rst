@@ -4,17 +4,13 @@ Troubleshooting
 Базовая диагностика
 -------------------
 
-Начинайте с debug-логов:
+Начинайте с debug-логов. PyMax не настраивает логирование самостоятельно —
+включите их до создания клиента:
 
 .. code-block:: python
 
-   from pymax import Client, ExtraConfig
-
-   client = Client(
-       phone="+79990000000",
-       work_dir="cache",
-       extra_config=ExtraConfig(log_level="DEBUG"),
-   )
+   import logging
+   logging.basicConfig(level=logging.DEBUG)
 
 Если событие не распознается, добавьте raw-handler:
 
@@ -110,5 +106,5 @@ Reconnect
    консольный provider. В UI-приложениях передайте собственный async-provider.
 
 ``remove_2fa()`` не отключает пароль
-   Метод требует текущий пароль 2FA. Включите ``DEBUG``-логи и проверьте, что
+   Метод требует текущий пароль 2FA. Включите debug-логи и проверьте, что
    сервер принял проверку пароля и запрос отключения.

@@ -78,7 +78,6 @@ class BaseClient(BaseMixin, ABC, Generic[ClientT]):
             port=self.extra_config.port,
             use_ssl=self.extra_config.use_ssl,
             request_timeout=self.extra_config.request_timeout,
-            log_level=self.extra_config.log_level,
             telemetry=self.extra_config.telemetry,
             sync=self.extra_config.sync,
             store=self.extra_config.store,

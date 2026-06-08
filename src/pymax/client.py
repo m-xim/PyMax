@@ -9,7 +9,7 @@ from pymax.auth import (
 )
 from pymax.connection import ConnectionManager
 from pymax.connection.readers import TCPReader
-from pymax.logging import configure_logging, get_logger
+from pymax.logging import get_logger
 from pymax.protocol.tcp import TcpProtocol
 from pymax.protocol.tcp.framing import TcpPacketFramer
 from pymax.transport.tcp import TCPTransport
@@ -54,9 +54,9 @@ class Client(BaseClient["Client"]):
         self.session_name = session_name
         self.work_dir = work_dir
 
-        configure_logging(self.extra_config.log_level)
         logger.debug(
-            "creating client phone_set=%s session=%s work_dir=%s proxy_set=%s reconnect=%s",
+            "creating client phone_set=%s session=%s "
+            "work_dir=%s proxy_set=%s reconnect=%s",
             bool(phone),
             self.session_name,
             self.work_dir,

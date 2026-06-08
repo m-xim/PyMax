@@ -18,7 +18,6 @@ from .config import ExtraConfig
 from .dispatch import EventType, Router
 from .exceptions import ApiError, PyMaxError, UploadError
 from .files import File, Photo, Video
-from .logging import configure_logging
 from .routers import ClientRouter, WebRouter
 from .types import Chat, Message, MessageDeleteEvent, Profile, User
 from .types.domain.sync import SyncOverrides, SyncState
@@ -54,5 +53,4 @@ __all__ = (
     "WebClient",
     "WebRouter",
     "__version__",
-    "configure_logging",
 )

@@ -66,7 +66,6 @@ Client
        work_dir="cache",
        session_name="account.db",
        extra_config=ExtraConfig(
-           log_level="INFO",
            reconnect=True,
            reconnect_delay=3,
        ),
@@ -85,7 +84,7 @@ Client
    Имя файла сессии внутри ``work_dir``.
 
 ``extra_config``
-   Настройки соединения, логов, reconnect, token, device/user-agent и sync.
+   Настройки соединения, reconnect, token, device/user-agent и sync.
 
 Тип устройства
 ---------------
@@ -259,17 +258,13 @@ Debug-логи
 Debug-логи показывают handshake, login, входящие события, API-ошибки,
 причины reconnect и детали upload. Начинайте диагностику с них.
 
+PyMax не настраивает логирование самостоятельно. Включите debug-логи
+стандартными средствами Python до создания клиента:
+
 .. code-block:: python
 
-   from pymax import Client, ExtraConfig
-
-   client = Client(
-       phone="+79990000000",
-       extra_config=ExtraConfig(log_level="DEBUG"),
-   )
-
-Можно также вызвать ``configure_logging("DEBUG")`` до создания клиента, но
-обычно достаточно ``ExtraConfig(log_level="DEBUG")``.
+   import logging
+   logging.basicConfig(level=logging.DEBUG)
 
 Группы методов клиента
 ----------------------
